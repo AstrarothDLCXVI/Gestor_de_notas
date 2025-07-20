@@ -1,0 +1,254 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Editar' if note else 'Nueva' }} Nota{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{{ url_for('dashboard') }}">
+                        <i class="fas fa-home"></i> Dashboard
+                    </a>
+                </li>
+                <li class="breadcrumb-item active">
+                    {{ 'Editar' if note else 'Nueva' }} Nota
+                </li>
+            </ol>
+        </nav>
+        
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">
+                    <i class="fas {{ 'fa-edit' if note else 'fa-plus-circle' }}"></i>
+                    {{ 'Editar' if note else 'Crear Nueva' }} Nota
+                </h4>
+            </div>
+            
+            <div class="card-body p-4">
+                <!-- Formulario -->
+                <form method="POST" action="{{ url_for('edit_note', id=note.id) if note else url_for('new_note') }}" id="noteForm">
+                    <!-- Campo de título -->
+                    <div class="mb-4">
+                        <label for="title" class="form-label fw-bold">
+                            <i class="fas fa-heading"></i> Título
+                        </label>
+                        <input type="text" 
+                               class="form-control form-control-lg" 
+                               id="title" 
+                               name="title" 
+                               placeholder="Dale un título a tu nota..."
+                               value="{{ note.title if note else '' }}"
+                               required
+                               autofocus
+                               maxlength="200">
+                        <div class="form-text">
+                            <span id="titleCount">0</span>/200 caracteres
+                        </div>
+                    </div>
+                    
+                    <!-- Campo de contenido -->
+                    <div class="mb-4">
+                        <label for="content" class="form-label fw-bold">
+                            <i class="fas fa-file-alt"></i> Contenido
+                        </label>
+                        <textarea class="form-control" 
+                                  id="content" 
+                                  name="content" 
+                                  rows="12"
+                                  placeholder="Escribe el contenido de tu nota aquí..."
+                                  required>{{ note.content if note else '' }}</textarea>
+                        <div class="form-text">
+                            <span id="wordCount">0</span> palabras
+                        </div>
+                    </div>
+                    
+                    <!-- Información adicional para notas existentes -->
+                    {% if note %}
+                    <div class="alert alert-info small">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Información:</strong>
+                        {% if note.created_at %}
+                            {% if note.created_at is string %}
+                                Creada: {{ note.created_at }}
+                            {% else %}
+                                Creada el {{ note.created_at.strftime('%d/%m/%Y a las %H:%M') }}
+                            {% endif %}
+                        {% else %}
+                            Fecha de creación no disponible
+                        {% endif %}
+                        {% if note.updated_at and note.updated_at != note.created_at %}
+                            {% if note.updated_at is string %}
+                                • Última modificación: {{ note.updated_at }}
+                            {% else %}
+                                • Última modificación: {{ note.updated_at.strftime('%d/%m/%Y a las %H:%M') }}
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Botones de acción -->
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left"></i> Cancelar
+                        </a>
+                        
+                        <div>
+                            {% if note %}
+                            <!-- Botón de eliminar para notas existentes -->
+                            <button type="button" class="btn btn-outline-danger me-2" onclick="confirmDelete()">
+                                <i class="fas fa-trash"></i> Eliminar
+                            </button>
+                            {% endif %}
+                            
+                            <!-- Botón de guardar -->
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> 
+                                {{ 'Guardar Cambios' if note else 'Crear Nota' }}
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Tips de uso -->
+        <div class="card mt-3 bg-light border-0">
+            <div class="card-body">
+                <h6 class="card-title">
+                    <i class="fas fa-lightbulb text-warning"></i> Tips
+                </h6>
+                <ul class="small mb-0">
+                    <li>Usa títulos descriptivos para encontrar tus notas fácilmente</li>
+                    <li>Puedes usar formato de texto plano, listas, etc.</li>
+                    <li>Tus notas se guardan de forma segura y privada</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmación para eliminar (solo en edición) -->
+{% if note %}
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmar eliminación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que quieres eliminar esta nota?</p>
+                <p class="text-muted">"{{ note.title }}"</p>
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Esta acción no se puede deshacer.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <a href="{{ url_for('delete_note', id=note.id) }}" class="btn btn-danger">
+                    <i class="fas fa-trash"></i> Sí, eliminar
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<style>
+    /* Estilos adicionales para el formulario */
+    .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(67, 97, 238, 0.25);
+    }
+    
+    textarea.form-control {
+        resize: vertical;
+        min-height: 200px;
+    }
+    
+    .breadcrumb {
+        background-color: transparent;
+        padding: 0;
+    }
+    
+    .card-header {
+        border-radius: 0;
+    }
+    
+    /* Animación de guardado */
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+    
+    .btn-primary:active {
+        animation: pulse 0.3s;
+    }
+</style>
+
+<script>
+    // Contador de caracteres del título
+    const titleInput = document.getElementById('title');
+    const titleCount = document.getElementById('titleCount');
+    
+    function updateTitleCount() {
+        titleCount.textContent = titleInput.value.length;
+    }
+    
+    titleInput.addEventListener('input', updateTitleCount);
+    updateTitleCount(); // Actualizar al cargar la página
+    
+    // Contador de palabras del contenido
+    const contentInput = document.getElementById('content');
+    const wordCount = document.getElementById('wordCount');
+    
+    function updateWordCount() {
+        const text = contentInput.value.trim();
+        const words = text ? text.split(/\s+/).length : 0;
+        wordCount.textContent = words;
+    }
+    
+    contentInput.addEventListener('input', updateWordCount);
+    updateWordCount(); // Actualizar al cargar la página
+    
+    // Auto-guardar borrador (opcional, solo visual por ahora)
+    let autoSaveTimer;
+    contentInput.addEventListener('input', function() {
+        clearTimeout(autoSaveTimer);
+        autoSaveTimer = setTimeout(function() {
+            // Aquí podrías implementar auto-guardado con AJAX
+            console.log('Auto-guardado simulado');
+        }, 2000);
+    });
+    
+    {% if note %}
+    // Función para confirmar eliminación
+    function confirmDelete() {
+        const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+        deleteModal.show();
+    }
+    {% endif %}
+    
+    // Prevenir envío accidental del formulario
+    document.getElementById('noteForm').addEventListener('submit', function(e) {
+        const title = titleInput.value.trim();
+        const content = contentInput.value.trim();
+        
+        if (!title || !content) {
+            e.preventDefault();
+            alert('Por favor completa todos los campos.');
+            return false;
+        }
+        
+        // Deshabilitar el botón de submit para evitar doble envío
+        const submitBtn = this.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+    });
+</script>
+{% endblock %}
