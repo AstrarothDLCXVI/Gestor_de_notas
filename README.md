@@ -213,10 +213,6 @@ Modifica los estilos CSS en la sección `<style>` de `base.html` o crea archivos
 - [ ] Backup automático
 - [ ] Compartir notas entre usuarios
 
-## 📄 Licencia
-
-Este proyecto es de código abierto. Puedes usarlo, modificarlo y distribuirlo libremente.
-
 ## 🤝 Contribuciones
 
 ¡Las contribuciones son bienvenidas! Si encuentras bugs o tienes ideas para mejoras, no dudes en:
