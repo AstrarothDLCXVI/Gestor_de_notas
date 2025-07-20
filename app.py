@@ -5,7 +5,7 @@ from datetime import datetime
 from functools import wraps
 
 app = Flask(__name__)
-app.secret_key = '1234'  # IMPORTANTE: Cambiar en producción
+app.secret_key = '1234'  
 
 # Función para conectar a la base de datos
 def get_db():
